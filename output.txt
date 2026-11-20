@@ -4,7 +4,7 @@
 
 
 > destructuring-guide@0.0.0 js
-> node js/arrays.mjs && node js/objects.mjs && node js/params.mjs && node js/pitfalls.mjs && tsx js/props.jsx
+> node js/arrays.mjs && node js/objects.mjs && node js/params.mjs && node js/pitfalls.mjs && node js/depth.mjs && tsx js/props.jsx
 
 form 1: Destructuring 45
 form 2 second: Objects
@@ -55,6 +55,28 @@ pitfall 5 object: Destructuring 45
 pitfall 5 array: Destructuring 45
 pitfall 5 reversed: Destructuring 45
 pitfall 5 types: string number
+depth 1 string: 📚 T ["S"]
+depth 1 string length: 4
+depth 1 set: TypeScript ["React","Testing"]
+depth 1 generator: 25 [5,30]
+depth 1 error: TypeError
+depth 1 message: arrayLike is not iterable
+depth 2 started: early
+depth 2 finally: early
+depth 2 first: 25
+depth 2 early done: true
+depth 2 started: complete
+depth 2 resumed: complete
+depth 2 finally: complete
+depth 2 complete: 25 [5,30]
+depth 2 complete done: true
+depth 3 default called: focus
+depth 3 values: 25 0 25
+depth 3 calls: 1
+depth 3 null: null
+depth 3 calls after null: 1
+depth 3 error: ReferenceError
+depth 3 message: Cannot access 'later' before initialization
 P1 A: <section><h2>Study session</h2>Practice destructuring</section>
 P1 B: <section><h2>Study session</h2>Practice destructuring</section>
 P1 equal: true

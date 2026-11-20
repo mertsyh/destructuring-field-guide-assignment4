@@ -1429,6 +1429,219 @@ Runtime destructuring rules stay the same. TypeScript adds static constraints; a
 | P7: children | Children remains a prop. | ReactNode or PropsWithChildren describes content. | A function child produced the recorded ReactNode TS2322 error. |
 | P7: button | Forward props with spread. | ComponentProps<'button'> preserves native constraints. | type="link" produced the recorded button-type TS2322 error. |
 
+## Bonus 2: Depth
+
+The experiments in `js/depth.mjs` investigate the iterator protocol behind array patterns and the order in which defaults are evaluated. They run as part of `npm run all`; the output below is copied from `output.txt`. The explanations connect the observed results to the ECMAScript specification.
+
+### D1: Strings, Set, generators and an array-like object
+
+An array pattern does not require an Array instance. This experiment compares three iterable values with a plain object that has numeric properties and a length. The string includes a supplementary Unicode character so that iteration can also be compared with string length.
+
+```js
+// Experiment 1A: a string containing an emoji.
+const unicodeLabel = '📚TS'
+
+const [firstSymbol, nextLetter, ...remainingLetters] = unicodeLabel
+
+console.log(
+  'depth 1 string:',
+  firstSymbol,
+  nextLetter,
+  JSON.stringify(remainingLetters)
+)
+
+console.log('depth 1 string length:', unicodeLabel.length)
+
+// Experiment 1B: a Set removes duplicates.
+const uniqueTopics = new Set([
+  'TypeScript',
+  'React',
+  'TypeScript',
+  'Testing'
+])
+
+const [firstUniqueTopic, ...otherUniqueTopics] = uniqueTopics
+
+console.log(
+  'depth 1 set:',
+  firstUniqueTopic,
+  JSON.stringify(otherUniqueTopics)
+)
+
+// Experiment 1C: a generator supplies values on demand.
+function* studyBlocks() {
+  yield 25
+  yield 5
+  yield 30
+}
+
+const [firstBlock, ...laterBlocks] = studyBlocks()
+
+console.log(
+  'depth 1 generator:',
+  firstBlock,
+  JSON.stringify(laterBlocks)
+)
+
+// Experiment 1D: numeric properties do not make an object iterable.
+const arrayLike = {
+  0: 'TypeScript',
+  1: 'React',
+  length: 2
+}
+
+try {
+  const [firstTopic] = arrayLike
+  console.log(firstTopic)
+} catch (error) {
+  console.log('depth 1 error:', error.name)
+  console.log('depth 1 message:', error.message)
+}
+```
+
+**Real output:**
+
+```text
+depth 1 string: 📚 T ["S"]
+depth 1 string length: 4
+depth 1 set: TypeScript ["React","Testing"]
+depth 1 generator: 25 [5,30]
+depth 1 error: TypeError
+depth 1 message: arrayLike is not iterable
+```
+
+**What the results show:** The string supplies the book emoji as one value, followed by T and S. Its length is four because JavaScript string length counts UTF-16 code units, while this emoji occupies two. String iteration operates on code points, so the emoji is not split into its two code units. This does not mean that every visually combined character must be one iterator value. [ECMAScript: String iterator](https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype-%symbol.iterator%)
+
+The Set contains TypeScript once despite its repeated insertion. Its first value is extracted separately, and the remaining React and Testing values are collected into a new array. The generator produces 25, 5 and 30 on demand; rest collects the final two values.
+
+The array-like object fails with TypeError even though it has properties 0 and 1 and a length of 2. Those properties do not implement iteration. The binding algorithm obtains a synchronous iterator for an array pattern; in the ordinary protocol this uses the value's `Symbol.iterator` method. This explains why the iterable values work and this plain object does not. [ECMAScript: BindingInitialization](https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-bindinginitialization)
+
+**Practical consequence:** An index-based explanation of array destructuring is convenient for arrays, but it is incomplete as a general definition. The pattern consumes iterator values, and rest creates an array even when the input is a Set or generator.
+
+### D2: Early generator closing versus complete consumption
+
+This experiment places a log after the first yield and another in a finally block. It compares a one-element pattern with a pattern containing rest, then asks each generator for another result.
+
+```js
+// Experiment 2: early closing versus consuming all remaining values.
+function* trackedStudyBlocks(label) {
+  try {
+    console.log('depth 2 started:', label)
+
+    yield 25
+
+    console.log('depth 2 resumed:', label)
+
+    yield 5
+    yield 30
+  } finally {
+    console.log('depth 2 finally:', label)
+  }
+}
+
+// Take only the first value.
+const earlyIterator = trackedStudyBlocks('early')
+const [onlyFirstBlock] = earlyIterator
+
+console.log('depth 2 first:', onlyFirstBlock)
+console.log('depth 2 early done:', earlyIterator.next().done)
+
+// Take the first value and collect all remaining values.
+const completeIterator = trackedStudyBlocks('complete')
+const [firstCompleteBlock, ...remainingBlocks] = completeIterator
+
+console.log(
+  'depth 2 complete:',
+  firstCompleteBlock,
+  JSON.stringify(remainingBlocks)
+)
+
+console.log('depth 2 complete done:', completeIterator.next().done)
+```
+
+**Real output:**
+
+```text
+depth 2 started: early
+depth 2 finally: early
+depth 2 first: 25
+depth 2 early done: true
+depth 2 started: complete
+depth 2 resumed: complete
+depth 2 finally: complete
+depth 2 complete: 25 [5,30]
+depth 2 complete done: true
+```
+
+**What the results show:** The early case logs started and finally, but never resumed. Its finally block runs before the extracted first value is printed. A subsequent next call reports done: true. Taking one value through this pattern therefore does not leave this generator suspended for later reuse.
+
+The array binding algorithm performs IteratorClose when the pattern finishes while its iterator is not marked done. A generator supports closing through its return method, which enters the finally block here. This describes this generator's behavior; it does not imply that every custom iterator has a return method or the same cleanup behavior. [ECMAScript: BindingInitialization](https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-bindinginitialization)
+
+The complete case logs resumed, collects 5 and 30, and then runs finally on normal completion. Its next call also reports done: true. The finally message alone cannot distinguish early closing from exhaustion; the resumed log and collected values provide the distinction.
+
+**Practical consequence:** Destructuring one value from a generator is not equivalent to calling next once and keeping it available. Also, rest consumes all remaining values in these finite generators; using rest on an endless iterator would not finish.
+
+### D3: Lazy defaults, side effects and earlier bindings
+
+The default helper counts calls and logs its label. This makes evaluation visible: if every default were evaluated eagerly, both focus and pause would call it. A third default uses earlier bindings, and a separate deliberate failure attempts the reverse dependency.
+
+```js
+// Experiment 3: lazy defaults, earlier bindings and evaluation order.
+let defaultCalls = 0
+
+function provideDefault(label, value) {
+  defaultCalls += 1
+  console.log('depth 3 default called:', label)
+  return value
+}
+
+const [
+  focus = provideDefault('focus', 25),
+  pause = provideDefault('pause', 5),
+  total = focus + pause
+] = [undefined, 0]
+
+console.log('depth 3 values:', focus, pause, total)
+console.log('depth 3 calls:', defaultCalls)
+
+const [
+  preservedNull = provideDefault('null fallback', 99)
+] = [null]
+
+console.log('depth 3 null:', preservedNull)
+console.log('depth 3 calls after null:', defaultCalls)
+
+// A default cannot read a later binding before it is initialized.
+try {
+  const [earlier = later, later = 10] = []
+
+  console.log(earlier, later)
+} catch (error) {
+  console.log('depth 3 error:', error.name)
+  console.log('depth 3 message:', error.message)
+}
+```
+
+**Real output:**
+
+```text
+depth 3 default called: focus
+depth 3 values: 25 0 25
+depth 3 calls: 1
+depth 3 null: null
+depth 3 calls after null: 1
+depth 3 error: ReferenceError
+depth 3 message: Cannot access 'later' before initialization
+```
+
+**What the results show:** Only focus calls the helper because its input is undefined. Pause receives zero, so its default expression is not evaluated. The third input position is absent, making total use its default expression. Focus and pause are already initialized, so the result is 25 + 0 = 25. The call counter remains one after the null example because null does not activate a default.
+
+The binding rules evaluate a default initializer when the extracted value is undefined, rather than evaluating every initializer in advance. [ECMAScript: IteratorBindingInitialization](https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-iteratorbindinginitialization)
+
+In the failing pattern, earlier tries to read later before later has been initialized. The result is the recorded ReferenceError, even though later has its own default of 10. Binding elements are processed in order; a previous initialized binding can be used, while this forward dependency encounters the temporal dead zone. [ECMAScript: IteratorBindingInitialization](https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-iteratorbindinginitialization)
+
+**Practical consequence:** A default may be a function call or calculation, not just a constant. Side effects occur only when that default is needed. Defaults can safely depend on earlier initialized bindings, but a forward dependency can fail.
+
 ## My own log
 
 These entries describe the commands and experiments recorded during this work. The tuple and React type failures were deliberate tests, not unexpected application crashes.
@@ -1505,3 +1718,13 @@ error TS2322: Type '"link"' is not assignable to type '"button" | "submit" | "re
 ```
 
 ComponentProps<'button'> preserved the native button restriction through the wrapper. I removed the invalid line; the working example uses type="button". The three P7 failures remain documented here without additional suppression comments in the project.
+
+### 8. Reading the UTF-8 output with PowerShell's default encoding
+
+The bonus string initially printed as a book emoji when running Node directly. Reading output.txt with Get-Content without an encoding displayed corrupted characters instead. Reading the same file explicitly as UTF-8 showed the emoji correctly:
+
+```powershell
+Get-Content -Encoding UTF8 output.txt | Select-String '^depth '
+```
+
+The file contained the correct UTF-8 bytes; the problem was how it was decoded for display. No JavaScript change was required. String encoding during file reading is separate from the code-point iteration tested in D1.
