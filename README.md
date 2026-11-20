@@ -1836,6 +1836,26 @@ const { dirName, options, fileNames } = pendingWatch;
 
 **Analysis:** The callback processes pairs from ObjectEntries(options), naming their two properties longOption and optionConfig. The pattern accesses properties 0 and 1; it does not obtain an iterator from each pair. An array pattern would look more familiar here, but that changes the general mechanism to iteration. The explicit rewrite preserves these property reads. This unusual case shows why bracket and brace patterns should not be treated as interchangeable syntax.
 
+## Bonus 4: Git repository
+
+Repository: [destructuring-field-guide-assignment4](https://github.com/mertsyh/destructuring-field-guide-assignment4)
+
+The project is tracked in Git and published through GitHub Desktop. The history separates the runnable examples and main guide, iterator and default-evaluation experiments, real-project analysis, and the LaTeX guide. The actual commit dates are retained. The initial development commits were made on 20 November 2026; these initial commits alone do not satisfy the handout's separate requirement for work spread over several days.
+
+The .gitignore excludes node_modules, dist and the LaTeX build cache. The repository includes package-lock.json, source examples, recorded output, the Markdown guide and the LaTeX source and PDF. If the repository is private, instructor access must be granted according to the instructions in CATS.
+
+To run a fresh copy:
+
+```powershell
+git clone https://github.com/mertsyh/destructuring-field-guide-assignment4.git
+cd destructuring-field-guide-assignment4
+npm install
+npm run all
+npm run check
+```
+
+For the CATS submission, assignment4.zip contains one top-level assignment4 folder. It includes the project files and LaTeX deliverables, while excluding node_modules, Git internals, compiler binaries and build caches.
+
 ## My own log
 
 These entries describe the commands and experiments recorded during this work. The tuple and React type failures were deliberate tests, not unexpected application crashes.

@@ -95,7 +95,7 @@ real-project analysis and the work log. Generated from README.md.
 \clearpage
 \pagenumbering{arabic}
 
-% README SHA256: 683830dfdbb4023a51f92e50602e5f2bd7e2607f90fc76c75c4aeb28f08bc91a
+% README SHA256: eb4659204dae8ddbb17699d950c75e54c464b9bb964ed465d2c72d11621fc8f6
 This guide explains JavaScript destructuring, its TypeScript types, and its use in React props and children. The examples use study sessions and tasks. They were developed step by step with AI assistance, entered into the starter project, and run locally. Output blocks come from the recorded runs. The log distinguishes deliberate error experiments from problems encountered during the work.
 
 \Needspace{10\baselineskip}
@@ -2277,6 +2277,30 @@ const { dirName, options, fileNames } = pendingWatch;
 \end{lstlisting}
 
 \textbf{Analysis:} The callback processes pairs from ObjectEntries(options), naming their two properties longOption and optionConfig. The pattern accesses properties 0 and 1; it does not obtain an iterator from each pair. An array pattern would look more familiar here, but that changes the general mechanism to iteration. The explicit rewrite preserves these property reads. This unusual case shows why bracket and brace patterns should not be treated as interchangeable syntax.
+
+\Needspace{10\baselineskip}
+\section{Bonus 4: Git repository}
+
+Repository: \href{https://github.com/mertsyh/destructuring-field-guide-assignment4}{destructuring-field-guide-assignment4}
+
+The project is tracked in Git and published through GitHub Desktop. The history separates the runnable examples and main guide, iterator and default-evaluation experiments, real-project analysis, and the LaTeX guide. The actual commit dates are retained. The initial development commits were made on 20 November 2026; these initial commits alone do not satisfy the handout's separate requirement for work spread over several days.
+
+The .gitignore excludes node\_modules, dist and the LaTeX build cache. The repository includes package-lock.json, source examples, recorded output, the Markdown guide and the LaTeX source and PDF. If the repository is private, instructor access must be granted according to the instructions in CATS.
+
+\Needspace{5\baselineskip}
+
+To run a fresh copy:
+
+\Needspace{3\baselineskip}
+\begin{lstlisting}[language={}]
+git clone https://github.com/mertsyh/destructuring-field-guide-assignment4.git
+cd destructuring-field-guide-assignment4
+npm install
+npm run all
+npm run check
+\end{lstlisting}
+
+For the CATS submission, assignment4.zip contains one top-level assignment4 folder. It includes the project files and LaTeX deliverables, while excluding node\_modules, Git internals, compiler binaries and build caches.
 
 \Needspace{10\baselineskip}
 \section{My own log}
