@@ -1642,6 +1642,166 @@ In the failing pattern, earlier tries to read later before later has been initia
 
 **Practical consequence:** A default may be a function call or calculation, not just a constant. Side effects occur only when that default is needed. Defaults can safely depend on earlier initialized bindings, but a forward dependency can fail.
 
+## Bonus 3: Real code
+
+These five cases come from the Task Manager sample in the Assignment 3 workspace, installed dependencies, and the Node.js open-source project. Local line numbers below were checked against the actual files. Dependency versions are included because generated distribution files can move between releases. The code blocks are source excerpts and alternative rewrites, not additional runnable files in this assignment.
+
+| Case | Source | Verified line | Forms |
+| --- | --- | --- | --- |
+| C1 | Assignment 3 sample, src/App.tsx | 84 | 1 |
+| C2 | Assignment 3 sample, src/TaskRow.tsx | 5 | 5 and 11 |
+| C3 | esbuild 0.28.2, node_modules/esbuild/lib/main.js | 193 | 5 |
+| C4 | TypeScript 5.8.3, node_modules/typescript/lib/typescript.js | 7802 | 9, combining 5 and 1 |
+| C5 | Node.js v24.14.0, lib/internal/util/parse_args/parse_args.js | 301 | 5, 6 and 11 |
+
+The Assignment 3 source files were read from `D:\Webprogramming\assigment3\starter\starter\src`. They are workspace copies of the sample used for the earlier assignment; the excerpts below make the analysis readable without requiring that folder in the submitted zip.
+
+### C1: The useReducer return value
+
+**Source:** Assignment 3 sample, `src/App.tsx:84`.
+
+**Original:**
+
+```tsx
+const [state, dispatch] = useReducer(taskReducer, initialState)
+```
+
+**Forms:** Form 1, extracting a function's returned values by position.
+
+**Without destructuring:**
+
+```tsx
+const reducerResult = useReducer(taskReducer, initialState)
+const state = reducerResult[0]
+const dispatch = reducerResult[1]
+```
+
+**Analysis:** The first position is the current state; the second is the dispatch function. Destructuring gives meaningful names to the pair. The rewrite calls useReducer once and reads its two returned positions; it must not call the Hook separately for each variable. This is a good use of a short positional pattern because the API defines a stable pair.
+
+### C2: TaskRow receives props, not separate arguments
+
+**Source:** Assignment 3 sample, `src/TaskRow.tsx:5`.
+
+**Original:**
+
+```tsx
+export default function TaskRow({ task, onNext, onDelete }: TaskRowProps) {
+  return (
+    <li style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <span style={{ flex: 1 }}>{task.title}</span>
+      <em>{task.status}</em>
+      <button onClick={onNext}>Next</button>
+      <button onClick={onDelete}>Delete</button>
+    </li>
+  )
+}
+```
+
+**Forms:** Form 5's named-property pattern inside the parameter position of Form 11.
+
+**Without destructuring:**
+
+```tsx
+export default function TaskRow(props: TaskRowProps) {
+  const task = props.task
+  const onNext = props.onNext
+  const onDelete = props.onDelete
+  return (
+    <li style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <span style={{ flex: 1 }}>{task.title}</span>
+      <em>{task.status}</em>
+      <button onClick={onNext}>Next</button>
+      <button onClick={onDelete}>Delete</button>
+    </li>
+  )
+}
+```
+
+**Props and children:** TaskRow receives one object with task, onNext and onDelete. Task is the data prop; onNext and onDelete are callback props. Its TaskRowProps type does not declare children, and TaskList calls it with a self-closing tag, supplying no nested content. The span, status and buttons are JSX created inside TaskRow, not caller-supplied children. A component's own returned markup should not be confused with its props.children.
+
+**Analysis:** The short pattern makes the three dependencies visible at the function boundary. The props-based rewrite makes every property access explicit but introduces extra lines without simplifying this small component. Destructuring does not copy the task object or call the callbacks.
+
+### C3: A typed-array view in esbuild
+
+**Source:** esbuild 0.28.2, `node_modules/esbuild/lib/main.js:193`, inside the Buffer-based decodeUTF8 fallback.
+
+**Original:**
+
+```js
+let { buffer, byteOffset, byteLength } = bytes;
+return Buffer.from(buffer, byteOffset, byteLength).toString();
+```
+
+**Forms:** Form 5, reading several properties by name.
+
+**Without destructuring:**
+
+```js
+let buffer = bytes.buffer;
+let byteOffset = bytes.byteOffset;
+let byteLength = bytes.byteLength;
+return Buffer.from(buffer, byteOffset, byteLength).toString();
+```
+
+**Analysis:** Buffer, byteOffset and byteLength describe the view's backing memory and boundaries. Passing all three preserves the selected byte region rather than assuming the view occupies its entire backing buffer. The pattern groups three related values clearly. It reads properties without cloning their backing memory. This is a distribution-file excerpt, not a claim that this fallback was selected in the assignment's runtime.
+
+### C4: A nested TypeScript compiler pattern that is harder to read
+
+**Source:** TypeScript 5.8.3, `node_modules/typescript/lib/typescript.js:7802`, in onTimerToUpdateChildWatches.
+
+**Original:**
+
+```js
+const { value: [dirPath, { dirName, options, fileNames }] } = result;
+```
+
+**Forms:** Form 9 combines an object property, a two-position entry array and another object pattern.
+
+**Without destructuring:**
+
+```js
+const entry = result.value;
+const dirPath = entry[0];
+const pendingWatch = entry[1];
+const dirName = pendingWatch.dirName;
+const options = pendingWatch.options;
+const fileNames = pendingWatch.fileNames;
+```
+
+**Analysis and readability judgment:** The surrounding code gets a Map entry through entries().next() and asserts that the iterator result is not done. The pattern then enters result.value, takes the entry key as dirPath, and reads three fields from the entry value. Neither value nor the inner object receives a local variable in the original.
+
+For a reader unfamiliar with this structure, I find the three nested levels harder to follow than the explicit entry and pendingWatch steps. The shorter original hides two intermediate shapes in punctuation. The rewrite names those shapes and makes debugging individual accesses easier, at the cost of extra lines. For the ordinary iterator-result objects and Map entries used here, it expresses the same reads. It is not a general claim that property indexing replaces iterator-based destructuring for every custom iterable.
+
+A compromise would keep shallow destructuring but split the navigation into stages:
+
+```js
+const [dirPath, pendingWatch] = result.value;
+const { dirName, options, fileNames } = pendingWatch;
+```
+
+### C5: Numeric property names in Node.js
+
+**Source:** Node.js v24.14.0, `lib/internal/util/parse_args/parse_args.js:301`. [Versioned source](https://github.com/nodejs/node/blob/v24.14.0/lib/internal/util/parse_args/parse_args.js#L301), [raw source](https://raw.githubusercontent.com/nodejs/node/v24.14.0/lib/internal/util/parse_args/parse_args.js).
+
+**Original callback parameter:**
+
+```js
+({ 0: longOption, 1: optionConfig }) => {
+```
+
+**Forms:** Forms 5 and 6 in the parameter position of Form 11. This is an object pattern with numeric property names, not an array pattern.
+
+**Without destructuring:** Replace the parameter and add these reads before the unchanged callback body:
+
+```js
+(entry) => {
+  const longOption = entry[0];
+  const optionConfig = entry[1];
+  // Existing callback body continues here.
+```
+
+**Analysis:** The callback processes pairs from ObjectEntries(options), naming their two properties longOption and optionConfig. The pattern accesses properties 0 and 1; it does not obtain an iterator from each pair. An array pattern would look more familiar here, but that changes the general mechanism to iteration. The explicit rewrite preserves these property reads. This unusual case shows why bracket and brace patterns should not be treated as interchangeable syntax.
+
 ## My own log
 
 These entries describe the commands and experiments recorded during this work. The tuple and React type failures were deliberate tests, not unexpected application crashes.
