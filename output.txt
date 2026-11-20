@@ -1,0 +1,158 @@
+
+> destructuring-guide@0.0.0 all
+> npm run js && npm run ts
+
+
+> destructuring-guide@0.0.0 js
+> node js/arrays.mjs && node js/objects.mjs && node js/params.mjs && node js/pitfalls.mjs && tsx js/props.jsx
+
+form 1: Destructuring 45
+form 2 second: Objects
+form 2 rest: ["Parameters","React props"]
+form 3 before: TypeScript React
+form 3 after: React TypeScript
+form 4 empty: 45 10
+form 4 undefined: 45
+form 4 null: null
+form 4 zero: 0
+form 5: Practice destructuring in-progress
+form 6: Practice destructuring 45
+form 7: 10 15 null
+form 8 title: Practice destructuring
+form 8 rest: {"status":"in-progress","minutes":45}
+form 9: React props Course slides
+form 10: minutes 45
+form 11 default: {"title":"Review destructuring","minutes":30}
+form 11 custom: {"title":"Practice props","minutes":45}
+form 11 partial: {"title":"Read course slides","minutes":30}
+form 11b: 55
+form 12 object: JavaScript 90
+form 12 object: TypeScript 120
+form 12 map: Monday Library
+form 12 map: Wednesday Home
+pitfall 1 input: undefined
+pitfall 1 error: TypeError
+pitfall 1 message: Cannot destructure property 'title' of 'task' as it is undefined.
+pitfall 1 safe: Untitled task
+pitfall 1 input: null
+pitfall 1 error: TypeError
+pitfall 1 message: Cannot destructure property 'title' of 'task' as it is null.
+pitfall 1 safe: Untitled task
+pitfall 2 missing: 30
+pitfall 2 undefined: 30
+pitfall 2 null: null
+pitfall 2 zero: 0
+pitfall 2 normalized: 30
+pitfall 3 error: SyntaxError
+pitfall 3 message: Unexpected token '='
+pitfall 3 fixed: Review React props
+pitfall 4 before: 45
+pitfall 4 shared: true
+pitfall 4 after: 60
+pitfall 4 copy: 90
+pitfall 4 original: 60
+pitfall 5 object: Destructuring 45
+pitfall 5 array: Destructuring 45
+pitfall 5 reversed: Destructuring 45
+pitfall 5 types: string number
+P1 A: <section><h2>Study session</h2>Practice destructuring</section>
+P1 B: <section><h2>Study session</h2>Practice destructuring</section>
+P1 equal: true
+P2 nested: <section><h2>Study session</h2>Practice destructuring</section>
+P2 prop: <section><h2>Study session</h2>Practice destructuring</section>
+P2 equal: true
+P3 text: <div>Study time</div>
+P3 number: <div>45</div>
+P3 element: <div><strong>React props</strong></div>
+P3 elements: <div><span>Read</span><span>Practice</span></div>
+P3 undefined: <div></div>
+P3 null: <div></div>
+P3 false: <div></div>
+Functions are not valid as a React child. This may happen if you return children instead of <children /> from render. Or maybe you meant to call this function rather than return it.
+P3 function direct: <div></div>
+P3 function called: <div>Practice React props</div>
+P4 spread last: <section class="custom-card" id="study-card"><h2>Study session</h2>Practice props</section>
+P4 explicit last: <section class="default-card" id="study-card"><h2>Study session</h2>Practice props</section>
+P5 slots: <section><header><h2>Weekly plan</h2></header><div><p>Practice TypeScript</p></div><footer><small>2 topics remaining</small></footer></section>
+P5 children: <section><header><h2>Weekly plan</h2></header><div><p>Practice TypeScript</p></div><footer><small>2 topics remaining</small></footer></section>
+P5 equal: true
+P6 missing: <section><h2>Untitled session</h2>Study notes</section>
+P6 undefined: <section><h2>Untitled session</h2>Study notes</section>
+P6 null: <section><h2></h2>Study notes</section>
+P7 ReactNode: <aside><h3>Study</h3>Review types</aside>
+P7 PropsWithChildren: <aside><h3>Study</h3>Review types</aside>
+P7 missing children: <aside><h3>Study</h3></aside>
+P7 button: <button type="button" disabled="" data-tone="primary">Start study</button>
+
+> destructuring-guide@0.0.0 ts
+> tsx ts/arrays.ts && tsx ts/objects.ts && tsx ts/params.ts && tsx ts/types.ts && tsx ts/props.tsx
+
+form 1: Destructuring 45
+form 2 second: Objects
+form 2 rest: ["Parameters","React props"]
+form 3 before: TypeScript React
+form 3 after: React TypeScript
+form 4 empty: 45 10
+form 4 undefined: 45
+form 4 null: null
+form 4 zero: 0
+form 5: Practice destructuring in-progress
+form 6: Practice destructuring 45
+form 7: 10 15 null
+form 8 title: Practice destructuring
+form 8 rest: {"status":"in-progress","minutes":45}
+form 9: React props Course slides
+form 10: minutes 45
+form 11 default: {"title":"Review destructuring","minutes":30}
+form 11 custom: {"title":"Practice props","minutes":45}
+form 11 partial: {"title":"Read course slides","minutes":30}
+form 11b: 55
+form 12 object: JavaScript 90
+form 12 object: TypeScript 120
+form 12 map: Monday Library
+form 12 map: Wednesday Home
+T1 renamed value: 45
+T1 renamed type: number
+T1 typed: Destructuring 45
+T2 array: 50 React props
+T2 tuple: 50 React props
+T2 formatted: 50.0 REACT PROPS
+T2 as const: 40 TypeScript
+T3 first: Review tuples
+T3 empty: undefined
+T3 checked: REVIEW TUPLES
+T3 default: No study task
+T3 default uppercase: NO STUDY TASK
+T4 optional: undefined
+T4 default: 30
+T4 formatted: 30.0
+T4 null: null
+T4 normalized: No note
+T5 after fix: 45 number
+T5 before fix: 45 string
+P1 A: <section><h2>Study session</h2>Practice destructuring</section>
+P1 B: <section><h2>Study session</h2>Practice destructuring</section>
+P1 equal: true
+P2 nested: <section><h2>Study session</h2>Practice destructuring</section>
+P2 prop: <section><h2>Study session</h2>Practice destructuring</section>
+P2 equal: true
+P3 text: <div>Study time</div>
+P3 number: <div>45</div>
+P3 element: <div><strong>React props</strong></div>
+P3 elements: <div><span>Read</span><span>Practice</span></div>
+P3 undefined: <div></div>
+P3 null: <div></div>
+P3 false: <div></div>
+P3 function called: <div>Practice React props</div>
+P4 spread last: <section class="custom-card" id="study-card"><h2>Study session</h2>Practice props</section>
+P4 explicit last: <section class="default-card" id="study-card"><h2>Study session</h2>Practice props</section>
+P5 slots: <section><header><h2>Weekly plan</h2></header><div><p>Practice TypeScript</p></div><footer><small>2 topics remaining</small></footer></section>
+P5 children: <section><header><h2>Weekly plan</h2></header><div><p>Practice TypeScript</p></div><footer><small>2 topics remaining</small></footer></section>
+P5 equal: true
+P6 missing: <section><h2>Untitled session</h2>Study notes</section>
+P6 undefined: <section><h2>Untitled session</h2>Study notes</section>
+P6 null: <section><h2></h2>Study notes</section>
+P7 ReactNode: <aside><h3>Study</h3>Review types</aside>
+P7 PropsWithChildren: <aside><h3>Study</h3>Review types</aside>
+P7 missing children: <aside><h3>Study</h3></aside>
+P7 button: <button type="button" disabled="" data-tone="primary">Start study</button>
