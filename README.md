@@ -27,6 +27,40 @@ cmd /d /c "npm run all > output.txt 2>&1"
 
 This captures standard output and the intentional React warning on standard error without PowerShell's extra native-error formatting. The warning in P3 is an intentional experiment. Runtime error examples catch their exceptions. T5 contains the single intentional @ts-expect-error directive. The invalid P7 test lines were removed after their diagnostics were recorded.
 
+## Bonus 1: LaTeX
+
+The complete guide is also provided as `latex/destructuring-guide.tex` and `latex/destructuring-guide.pdf`. The LaTeX document includes all form entries, pitfalls, TypeScript topics, React topics, comparison tables, depth experiments, real-code cases and the work log. It uses listings for code, longtable for tables and hyperref for the linked contents page and source links.
+
+The source is generated directly from the full README by `latex/build_guide.py`, which uses only the Python standard library. Regenerate both the source and PDF after changing this guide, so their content stays synchronized.
+
+The build used Python 3.12 and Tectonic 0.17.0. Tectonic was obtained from its [official release](https://github.com/tectonic-typesetting/tectonic/releases/tag/tectonic%400.17.0). Its first build downloads the TeX packages it needs. The Unicode book symbol uses Segoe UI Symbol on Windows, or Noto Sans Symbols 2 when that font is installed instead. The remaining fonts come from the TeX distribution.
+
+Commands used from the project root in this workspace:
+
+```powershell
+python latex/build_guide.py --tectonic ..\.tools\tectonic.exe
+```
+
+With Tectonic on PATH, the portable build command is:
+
+```powershell
+python latex/build_guide.py
+```
+
+To regenerate only the editable LaTeX source, without compiling:
+
+```powershell
+python latex/build_guide.py --generate-only
+```
+
+The checked-in source can also be compiled directly from the latex folder:
+
+```powershell
+tectonic destructuring-guide.tex
+```
+
+The generated PDF is part of the submission. The compiler executable and its package cache are build tools and are not included in the project. Auxiliary build files are ignored under `latex/.build/`.
+
 ## Field guide
 
 Array patterns take values by position from an iterable; object patterns read named properties. The assignment alternatives below describe the arrays and simple objects in this project. They are separate alternatives, not additional declarations to paste into the same scope.

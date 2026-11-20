@@ -1,2 +1,5 @@
 node_modules
 dist
+
+# LaTeX compilation cache and intermediate files
+latex/.build/
